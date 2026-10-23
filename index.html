@@ -440,6 +440,18 @@ main{ position:relative; z-index:1; height:100%; display:flex; flex-direction:co
   const OCT_LEGS = [['O.OO.OO.OO.O','O..O.OO.O..O'],['.OO.OO.OO.O.','.O..O..O..O.']];
   const OPAL = { H:'#ffe0c2', K:'#1a1c2c', W:'#f4f4f4', P:'#b13e53', M:'#5d275d' };
   const OCOL = ['#ef7d57','#ff8fb1'];
+  // 🐙 이모지를 16×16 도트로 작게 그린 뒤 크게 키워 쓰기 (픽셀화)
+  const EMO = (()=>{
+    const N = 24, c = document.createElement('canvas'); c.width = c.height = N; const g = c.getContext('2d');
+    g.textAlign = 'center'; g.textBaseline = 'middle';
+    g.font = (N-1) + 'px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif';
+    g.fillText('🐙', N/2, N/2 + 1);
+    try{
+      const d = g.getImageData(0,0,N,N); let solid = 0;
+      for(let k=3;k<d.data.length;k+=4){ if(d.data[k] > 110){ d.data[k] = 255; solid++; } else d.data[k] = 0; }
+      g.putImageData(d,0,0); return solid > 40 ? c : null;
+    }catch(e){ return null; }
+  })();
   const bc = $('board'), bx = bc.getContext('2d'); let BW = 0;
   function build(level){
     let rs = [{x:0,y:0,w:1,h:1,c:0}];
@@ -454,6 +466,14 @@ main{ position:relative; z-index:1; height:100%; display:flex; flex-direction:co
   function sizeBoard(){ const r = bc.getBoundingClientRect(), dpr = Math.min(2, devicePixelRatio||1); BW = r.width; bc.width = Math.round(BW*dpr); bc.height = Math.round(BW*dpr); bx.setTransform(dpr,0,0,dpr,0,0); bx.imageSmoothingEnabled = false; }
   sizeBoard(); addEventListener('resize', sizeBoard);
   function octo(cx, cy, size, col, i, t){
+    if(EMO){
+      const target = size*.84, p = Math.max(1, Math.floor(target/24)), sw = target >= 24 ? 24*p : Math.max(2, Math.round(target));
+      const up = !reduce && (Math.floor(t*3 + i*.7) % 2 === 0) ? p : 0;
+      const sq = !reduce && sw >= 32 && (Math.floor(t*4 + i) % 2) ? p : 0;   // 다리 꼼지락 (살짝 눌렸다 펼기)
+      bx.imageSmoothingEnabled = false;
+      bx.drawImage(EMO, Math.round(cx - sw/2), Math.round(cy - sw/2) - up + sq, sw, sw - sq);
+      return;
+    }
     const p = Math.floor(size*.8/12);
     if(p < 1){ const s = Math.max(2, Math.round(size*.7)); bx.fillStyle = col; bx.fillRect(Math.round(cx - s/2), Math.round(cy - s/2), s, s); return; }
     const sw = 12*p, x0 = Math.round(cx - sw/2);
