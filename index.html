@@ -44,15 +44,19 @@ body{
 
 /* main */
 main{ position:relative; z-index:1; height:100%; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:24px 20px 40px; }
-.bubble{ position:relative; background:var(--panel); padding:14px 20px 16px; text-align:center; min-width:220px; max-width:min(86vw, 350px); }
+.bubble{
+  position:relative; background:var(--text); padding:14px 20px 16px; text-align:center; min-width:220px; max-width:min(86vw, 350px);
+  box-shadow:0 -4px 0 0 var(--text), 0 4px 0 0 var(--text), -4px 0 0 0 var(--text), 4px 0 0 0 var(--text),
+    0 -8px 0 -4px var(--text), 0 8px 0 -4px var(--text), -8px 0 0 -4px var(--text), 8px 0 0 -4px var(--text);
+}
 .bubble::after{
-  content:""; position:absolute; left:50%; bottom:-18px; width:24px; height:14px; transform:translateX(-50%); background:var(--text);
-  clip-path:polygon(0 0,100% 0,100% 33%,75% 33%,75% 66%,62.5% 66%,62.5% 100%,37.5% 100%,37.5% 66%,25% 66%,25% 33%,0 33%);
+  content:""; position:absolute; left:28%; top:calc(100% + 4px); width:32px; height:20px; background:var(--text);
+  clip-path:polygon(0 0,32px 0,32px 4px,24px 4px,24px 8px,16px 8px,16px 12px,8px 12px,8px 16px,4px 16px,4px 20px,0 20px);
 }
 .bubble.wiggle{ animation:wig .4s steps(4); }
 @keyframes wig{ 0%{transform:translateY(-6px);} 50%{transform:translateY(2px);} 100%{transform:none;} }
-.pow{ font-size:13px; color:var(--yellow); }
-.msg{ font-size:19px; margin-top:6px; color:var(--text); word-break:keep-all; line-height:1.35; }
+.pow{ font-size:13px; color:var(--blue2); }
+.msg{ font-size:19px; margin-top:6px; color:var(--bg); word-break:keep-all; line-height:1.35; }
 
 .board{
   position:relative; margin-top:30px; width:min(78vw, 37vh, 330px); aspect-ratio:1;
