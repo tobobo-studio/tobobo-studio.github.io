@@ -469,7 +469,7 @@ main{ position:relative; z-index:1; height:100%; display:flex; flex-direction:co
     }
     return rs;
   }
-  let cells = build(1), prevCells = null, splitT0 = 0, crumble = null;
+  let cells = build(1), prevCells = null, splitT0 = 0, crumble = null, reveal = null;
   function sizeBoard(){ const r = bc.getBoundingClientRect(), dpr = Math.min(2, devicePixelRatio||1); BW = r.width; bc.width = Math.round(BW*dpr); bc.height = Math.round(BW*dpr); bx.setTransform(dpr,0,0,dpr,0,0); bx.imageSmoothingEnabled = false; }
   sizeBoard(); addEventListener('resize', sizeBoard);
   function octo(cx, cy, size, col, i, t){
@@ -497,11 +497,15 @@ main{ position:relative; z-index:1; height:100%; display:flex; flex-direction:co
     const t = now/1000; bx.clearRect(0,0,BW,BW);
     if(crumble){
       const e = (now - crumble.t0)/1000;
-      if(e > .15){
-        const fs = Math.round(BW*.24); bx.font = fs + 'px GalmuriNum, monospace'; bx.textAlign = 'center'; bx.textBaseline = 'middle';
-        const off = Math.max(3, Math.round(fs/12)), cx = Math.round(BW/2), cy = Math.round(BW/2);
-        bx.fillStyle = '#b13e53'; bx.fillText('10.24', cx + off, cy + off);
-        bx.fillStyle = (Math.floor(e*4) % 2) ? '#ffcd75' : '#f4f4f4'; bx.fillText('10.24', cx, cy);
+      bx.fillStyle = `rgba(26,28,44,${Math.max(0, .78 - e*.9)})`; bx.fillRect(0,0,BW,BW);
+      { // 1024 → 10.24 : 가운데가 벌어지고 점이 위에서 톡 떨어짐
+        const fs = Math.round(BW*.3); bx.font = fs + 'px GalmuriNum, monospace'; bx.textAlign = 'left'; bx.textBaseline = 'middle';
+        const w10 = bx.measureText('10').width, wd = bx.measureText('.').width, w24 = bx.measureText('24').width;
+        const gap = wd*Math.min(1, e/.2), xs = Math.round(BW/2 - (w10 + gap + w24)/2), cy = Math.round(BW/2), off = Math.max(3, Math.round(fs/12));
+        const dk = Math.min(1, Math.max(0, (e - .15)/.35)), dy = Math.round(-BW*.45*(1 - dk)*(1 - dk));
+        const col = (e > .6 && Math.floor(e*4) % 2) ? '#ffcd75' : '#f4f4f4';
+        const draw = (s, x, y)=>{ bx.fillStyle = '#b13e53'; bx.fillText(s, x + off, y + off); bx.fillStyle = col; bx.fillText(s, x, y); };
+        draw('10', xs, cy); draw('24', xs + w10 + gap, cy); if(e > .15) draw('.', xs + w10 + (gap - wd)/2, cy + dy);
       }
       crumble.parts.forEach((p,i)=>{
         const d = Math.max(0, e - p.delay); const y = p.y + p.vy*d*BW + .5*2.6*BW*d*d, x = p.x + p.vx*d*BW;
@@ -517,6 +521,27 @@ main{ position:relative; z-index:1; height:100%; display:flex; flex-direction:co
       octo(x*BW, (y - hop)*BW, s*BW, OCOL[r.c], i, t);
     });
     if(k >= 1) prevCells = null;
+    // "어라... 쭈꾸미의 갯수가..." → "1024"
+    if(reveal && now > reveal.t0){
+      const e = (now - reveal.t0)/1000, cx = Math.round(BW/2), cy = Math.round(BW/2);
+      bx.fillStyle = `rgba(26,28,44,${Math.min(.78, e*1.6)})`; bx.fillRect(0,0,BW,BW);
+      bx.textAlign = 'center'; bx.textBaseline = 'middle';
+      if(e < 1.9){
+        const L1 = '어라...', L2 = '쭈꾸미의 갯수가...', total = L1.length + L2.length, shown = Math.min(total, Math.floor(e*11));
+        if(shown > reveal.chars){ reveal.chars = shown; if(ac) chip(1100 + Math.random()*200, ac.currentTime, .03, .07, 'square'); }
+        const fs = Math.round(BW*.075); bx.font = fs + 'px Galmuri9, sans-serif'; bx.fillStyle = '#f4f4f4';
+        bx.fillText(L1.slice(0, Math.min(shown, L1.length)), cx, cy - fs);
+        if(shown > L1.length) bx.fillText(L2.slice(0, shown - L1.length), cx, cy + fs);
+      } else {
+        if(!reveal.hit){ reveal.hit = true; if(ac){ const t0 = ac.currentTime; [523.25,659.25,783.99,1046.5].forEach(f=> chip(f, t0, .35, .1, 'square')); noiseHit(0, .2, 1200, 'highpass', .3); } }
+        const fs = Math.round(BW*.3), off = Math.max(3, Math.round(fs/12)), pop = e < 2.02 ? 1.3 : (e < 2.12 ? 1.1 : 1);
+        bx.font = fs + 'px GalmuriNum, monospace';
+        bx.save(); bx.translate(cx, cy); bx.scale(pop, pop);
+        bx.fillStyle = '#b13e53'; bx.fillText('1024', off, off);
+        bx.fillStyle = (Math.floor(e*4) % 2) ? '#73eff7' : '#f4f4f4'; bx.fillText('1024', 0, 0);
+        bx.restore();
+      }
+    }
   }
   (function boardLoop(now){ if(!document.hidden) drawBoard(now); requestAnimationFrame(boardLoop); })(performance.now());
   function splitTo(level){ prevCells = cells; cells = build(level); splitT0 = performance.now(); }
@@ -524,6 +549,7 @@ main{ position:relative; z-index:1; height:100%; display:flex; flex-direction:co
     crumble = { t0: performance.now(), parts: cells.map(r=>({ x:(r.x+r.w/2)*BW, y:(r.y+r.h/2)*BW, s:Math.min(r.w,r.h)*BW, c:OCOL[r.c],
       vx: rnd(-.25,.25), vy: rnd(-.6,-.1), delay: (1 - r.y)*.35 + Math.random()*.25 })) };
     noiseHit(0, 1.3, 260, 'lowpass', .7);
+    setTimeout(()=>{ vib(sweep('square', 1500, 500, .22, .1), 12, 40); chip(1318.5, ac ? ac.currentTime + .24 : 0, .12, .12, 'pulse'); }, 150);   // 점 떨어지는 소리
   }
   if(document.fonts && document.fonts.load) document.fonts.load('20px GalmuriNum');
 
@@ -637,12 +663,12 @@ main{ position:relative; z-index:1; height:100%; display:flex; flex-direction:co
     initAudio();
     if(busy || n >= MAX) return;
     n++; render(); fx(n); splitTo(n);
-    if(n === MAX){ busy = true; setTimeout(crumbleBoard, 1100); setTimeout(()=>$('boardpic').classList.add('show'), 2700); setTimeout(finaleShow, 4000); }
+    if(n === MAX){ busy = true; reveal = { t0: performance.now() + 900, chars: 0, hit: false }; setTimeout(crumbleBoard, 3900); setTimeout(()=>$('boardpic').classList.add('show'), 5600); setTimeout(finaleShow, 6900); }
   });
   $('again').addEventListener('click', ()=>{
     finale.className='finale'; finale.scrollTop=0; $('mbDone').textContent=''; lyric.textContent=''; n=1; busy=false;
     clearInterval(fwTimer); clearInterval(cakeTimer); lyricTimers.forEach(clearTimeout);
-    crumble = null; prevCells = null; cells = build(1); $('boardpic').classList.remove('show');
+    crumble = null; reveal = null; prevCells = null; cells = build(1); $('boardpic').classList.remove('show');
     render(); btn.focus();
   });
 
