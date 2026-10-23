@@ -399,7 +399,7 @@ main{ position:relative; z-index:1; height:100%; display:flex; flex-direction:co
   sizeBoard(); addEventListener('resize', sizeBoard);
   function rrect(x,y,w,h,r){ r = Math.max(0, Math.min(r, w/2, h/2)); bx.beginPath(); bx.moveTo(x+r,y); bx.arcTo(x+w,y,x+w,y+h,r); bx.arcTo(x+w,y+h,x,y+h,r); bx.arcTo(x,y+h,x,y,r); bx.arcTo(x,y,x+w,y,r); bx.closePath(); }
   function blob(cx,cy,w,h,col,i,t,rot,sq){
-    const m = Math.min(w,h), pad = Math.max(.6, m*.06), bw = w-2*pad, bh = h-2*pad, rx = bw/2, ry = bh/2;
+    const m = Math.min(w,h), pad = Math.max(.6, m*.06), sz = m-2*pad, rx = sz/2, ry = sz/2;
     const bob = reduce ? 0 : Math.sin(t*4 + i*1.7) * m * .03;
     bx.save(); bx.translate(cx, cy + bob); if(rot) bx.rotate(rot); if(sq) bx.scale(sq[0], sq[1]);
     // 흰자 (울통불통)
