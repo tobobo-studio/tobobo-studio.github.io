@@ -44,22 +44,26 @@ body{
 
 /* main */
 main{ position:relative; z-index:1; height:100%; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:24px 20px 40px; }
-.bubble{
-  position:relative; background:var(--text); padding:14px 20px 16px; text-align:center; min-width:220px; max-width:min(86vw, 350px);
+.bubble{ position:relative; padding:14px 20px 16px; text-align:center; min-width:220px; max-width:min(86vw, 350px); }
+/* 말풍선 몸통+꼬리를 한 덩어리로 그리고, 외곽선을 통째로 둘러서 꼬리까지 이어지게 */
+.bb{
+  position:absolute; inset:0; z-index:0; background:var(--text);
   box-shadow:0 -4px 0 0 var(--text), 0 4px 0 0 var(--text), -4px 0 0 0 var(--text), 4px 0 0 0 var(--text),
     0 -8px 0 -4px var(--text), 0 8px 0 -4px var(--text), -8px 0 0 -4px var(--text), 8px 0 0 -4px var(--text);
+  filter:drop-shadow(4px 0 0 var(--blue)) drop-shadow(-4px 0 0 var(--blue)) drop-shadow(0 4px 0 var(--blue)) drop-shadow(0 -4px 0 var(--blue)) drop-shadow(0 6px 0 var(--navy));
 }
-.bubble::after{
-  content:""; position:absolute; left:28%; top:calc(100% + 4px); width:32px; height:20px; background:var(--text);
-  clip-path:polygon(0 0,32px 0,32px 4px,24px 4px,24px 8px,16px 8px,16px 12px,8px 12px,8px 16px,4px 16px,4px 20px,0 20px);
+.bb::after{
+  content:""; position:absolute; left:26%; top:100%; width:42px; height:30px; background:var(--text);
+  clip-path:polygon(0 0,42px 0,42px 6px,33px 6px,33px 12px,24px 12px,24px 18px,15px 18px,15px 24px,6px 24px,6px 30px,0 30px);
 }
+.pow, .msg{ position:relative; z-index:1; }
 .bubble.wiggle{ animation:wig .4s steps(4); }
 @keyframes wig{ 0%{transform:translateY(-6px);} 50%{transform:translateY(2px);} 100%{transform:none;} }
 .pow{ font-size:13px; color:var(--blue2); }
 .msg{ font-size:19px; margin-top:6px; color:var(--bg); word-break:keep-all; line-height:1.35; }
 
 .board{
-  position:relative; margin-top:30px; width:min(78vw, 37vh, 330px); aspect-ratio:1;
+  position:relative; margin-top:46px; width:min(78vw, 37vh, 330px); aspect-ratio:1;
   background-color:var(--panel2);
   background-image:conic-gradient(#2c3352 25%, transparent 0 50%, #2c3352 0 75%, transparent 0);
   background-size:24px 24px;
@@ -187,7 +191,8 @@ main{ position:relative; z-index:1; height:100%; display:flex; flex-direction:co
 <div class="app" id="app">
   <div class="shapes" id="shapes" aria-hidden="true"></div>
   <main>
-    <div class="bubble px" id="bubble" aria-live="polite">
+    <div class="bubble" id="bubble" aria-live="polite">
+      <div class="bb" aria-hidden="true"></div>
       <div class="pow" id="pow">2¹ = 2 · 니 눈 개수 👀</div>
       <div class="msg" id="msg">버튼 누르면 재밌는 일 생김 ㅋㅋ</div>
     </div>
