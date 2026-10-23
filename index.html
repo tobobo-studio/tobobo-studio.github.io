@@ -13,7 +13,7 @@
   --grey50:#202027; --grey100:#2C2C35; --grey500:#9E9EA4; --grey700:#C3C3C6; --grey900:#FFFFFF;
   --blue:#3182F6; --blue-press:#1B64DA; --blue50:#1F2A3D; --line:#F4EFE6;
   --coral:#F26B4F; --yellow:#FFC23D; --sage:#8DB58A; --sky:#9CC2EE; --peach:#FFB8A3; --ink:#2B2F36;
-  --bs:min(58vw, 240px);
+  --bs:min(30vw, 15vh, 124px);
   color-scheme: dark;
   box-sizing:border-box;
   padding-top:env(safe-area-inset-top,0px);
@@ -50,9 +50,15 @@ main{ position:relative; z-index:1; height:100%; display:flex; flex-direction:co
 .bubble.wiggle{ animation:wig .45s cubic-bezier(.3,1.6,.5,1); }
 @keyframes wig{ 0%{transform:scale(.9);} 60%{transform:scale(1.04);} 100%{transform:none;} }
 .pow{ font-size:15px; font-weight:700; color:var(--blue); }
-.msg{ font-size:22px; font-weight:800; margin-top:4px; color:var(--grey900); }
+.msg{ font-size:20px; font-weight:800; margin-top:4px; color:var(--grey900); word-break:keep-all; }
+.bubble{ max-width:min(88vw, 360px); }
+.board{
+  position:relative; margin-top:24px; width:min(80vw, 38vh, 340px); aspect-ratio:1;
+  background:var(--grey50); border-radius:22px; box-shadow:inset 0 0 0 2px rgba(255,255,255,.06);
+}
+.board canvas{ position:absolute; inset:0; width:100%; height:100%; border-radius:22px; }
 
-.btnwrap{ position:relative; margin-top:40px; width:var(--bs); height:var(--bs); animation:boing 2.2s ease-in-out infinite; }
+.btnwrap{ position:relative; margin-top:28px; width:var(--bs); height:var(--bs); animation:boing 2.2s ease-in-out infinite; }
 @keyframes boing{ 0%,58%,100%{transform:none;} 68%{transform:scale(1.07,.93);} 78%{transform:translateY(-8px) scale(.95,1.06);} 88%{transform:scale(1.03,.97);} }
 @media (prefers-reduced-motion: reduce){ .btnwrap{ animation:none; } }
 #btn{
@@ -66,7 +72,10 @@ main{ position:relative; z-index:1; height:100%; display:flex; flex-direction:co
 #btn::after{ content:""; position:absolute; left:60%; top:13%; width:8%; height:8%; border-radius:50%; background:rgba(255,255,255,.75); pointer-events:none; }
 #btn:active{ transform:translateY(8px) scale(1.05,.92); box-shadow:0 2px 0 #1A4FAE, 0 6px 14px rgba(49,130,246,.4), inset 0 -8px 16px rgba(10,40,120,.35), inset 0 6px 12px rgba(255,255,255,.35); }
 #btn:focus-visible{ outline:3px solid var(--blue); outline-offset:6px; }
-#num{ position:relative; z-index:1; display:block; font-family:"Fredoka", "Noto Sans KR", sans-serif; font-weight:700; font-size:calc(var(--bs) * var(--fs, .5)); line-height:1; font-variant-numeric:tabular-nums; letter-spacing:0; text-shadow:0 4px 0 rgba(20,60,150,.45); }
+#num{ position:relative; z-index:1; display:block; font-family:"Fredoka", "Noto Sans KR", sans-serif; font-weight:700; font-size:calc(var(--bs) * .48); line-height:1; letter-spacing:0; text-shadow:0 4px 0 rgba(20,60,150,.45); }
+#num sup{ display:inline-block; font-size:.52em; line-height:0; vertical-align:0; position:relative; top:-.62em; margin-left:.04em; color:#FFE07A; }
+#btn.pop #num sup{ animation:supup .55s cubic-bezier(.2,1.9,.4,1); }
+@keyframes supup{ 0%{ transform:translateY(70%) scale(.4); } 100%{ transform:none; } }
 #btn.pop #num{ animation:numpop .45s cubic-bezier(.2,1.8,.4,1); }
 @keyframes numpop{ 0%{transform:scale(.5) translateY(10%); opacity:.2;} 100%{transform:none; opacity:1;} }
 #btn.squish{ animation:squish .45s cubic-bezier(.3,1.7,.5,1); }
@@ -175,11 +184,12 @@ main{ position:relative; z-index:1; height:100%; display:flex; flex-direction:co
   <div class="shapes" id="shapes" aria-hidden="true"><svg width="0" height="0" style="position:absolute"><filter id="wob" x="-20%" y="-20%" width="140%" height="140%"><feTurbulence id="wobT" type="fractalNoise" baseFrequency="0.035" numOctaves="2" seed="1"/><feDisplacementMap in="SourceGraphic" scale="6" xChannelSelector="R" yChannelSelector="G"/></filter></svg></div>
   <main>
     <div class="bubble" id="bubble" aria-live="polite">
-      <div class="pow" id="pow">2의 1제곱</div>
+      <div class="pow" id="pow">2¹ = 2 · 니 눈 개수 👀</div>
       <div class="msg" id="msg">버튼 누르면 재밌는 일 생김 ㅋㅋ</div>
     </div>
+    <div class="board" aria-hidden="true"><canvas id="board"></canvas></div>
     <div class="btnwrap" id="wrap">
-      <button id="btn" aria-label="2"><span id="num">2</span></button>
+      <button id="btn" aria-label="2의 1제곱"><span id="num">2<sup>1</sup></span></button>
     </div>
   </main>
 </div>
@@ -200,6 +210,9 @@ main{ position:relative; z-index:1; height:100%; display:flex; flex-direction:co
 (function(){
   const MAX = 10;
   const MSG = {1:'버튼 누르면 재밌는 일 생김 ㅋㅋ',2:'숫자가 제곱됨 ㅋㅋ 계속 해보셈',3:'손 멈추지 마라.',4:'좀 더 해보자! 아직이다.',5:'오? 좀 치시는데요?',6:'설마 여기서 멈추실 거죠?',7:'눌러. 눌러! 더 눌러!!!',8:'손가락 아프세요? 그래서요?',9:'거의 다왔어! 하나 남았다.',10:'됐다. 이제 앉어라.'};
+  const FACT = {1:'2¹ = 2 · 니 눈 개수 👀',2:'2² = 4 · 네잎클로버 잎 개수 🍀',3:'2³ = 8 · 문어 다리 개수 🐙',4:'2⁴ = 16 · 월드컵 16강 ⚽',
+    5:'2⁵ = 32 · 니 이빨 개수 (사랑니 포함) 🦷',6:'2⁶ = 64 · 체스판 칸 개수 ♟️',7:'2⁷ = 128 · 니 폰 용량 아님? 📱',8:'2⁸ = 256 · 1바이트로 셀 수 있는 개수 🤓',
+    9:'2⁹ = 512 · 이건 진짜 아무 의미 없음 ㅋ',10:'2¹⁰ = ???? · 어? 이 숫자 어디서 봤는데?'};
   const C = ['#F26B4F','#FFC23D','#8DB58A','#9CC2EE','#3182F6','#FFB8A3','#F4EFE6'];
   const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
   const $ = id => document.getElementById(id);
@@ -254,10 +267,8 @@ main{ position:relative; z-index:1; height:100%; display:flex; flex-direction:co
 
   function restart(el, cls){ el.classList.remove(cls); void el.offsetWidth; el.classList.add(cls); }
   function render(){
-    const v = 2 ** n, d = String(v).length;
-    num.textContent = v; btn.setAttribute('aria-label', String(v));
-    btn.style.setProperty('--fs', [0,.5,.42,.34,.28][d]);
-    pow.textContent = '2의 ' + n + '제곱'; msg.textContent = MSG[n];
+    num.innerHTML = '2<sup>' + n + '</sup>'; btn.setAttribute('aria-label', '2의 ' + n + '제곱');
+    pow.textContent = FACT[n]; msg.textContent = MSG[n];
     btn.classList.toggle('glow', n >= 9 && n < MAX && !reduce);
   }
 
@@ -370,6 +381,74 @@ main{ position:relative; z-index:1; height:100%; display:flex; flex-direction:co
     cakeTimer=setInterval(()=>{ if(Date.now()>end) return clearInterval(cakeTimer); drop(reduce?2:6); }, 120);
   }
 
+  /* ---------- board: 보봇 분열 + 칸 쪼개기 ---------- */
+  const BC = ['#F26B4F','#FFC23D','#8DB58A','#9CC2EE','#3182F6','#FFB8A3','#F4EFE6'];
+  const bc = $('board'), bx = bc.getContext('2d'); let BW = 0;
+  function build(level){
+    let rs = [{x:0,y:0,w:1,h:1,c:1}];
+    for(let i=0;i<level;i++){
+      rs = rs.flatMap((r,j)=> r.w >= r.h - 1e-9
+        ? [{x:r.x,y:r.y,w:r.w/2,h:r.h,c:r.c},{x:r.x+r.w/2,y:r.y,w:r.w/2,h:r.h,c:(r.c+2+i+j)%BC.length}]
+        : [{x:r.x,y:r.y,w:r.w,h:r.h/2,c:r.c},{x:r.x,y:r.y+r.h/2,w:r.w,h:r.h/2,c:(r.c+3+i+j)%BC.length}]);
+    }
+    return rs;
+  }
+  let cells = build(1), prevCells = null, splitT0 = 0, crumble = null;
+  function sizeBoard(){ const r = bc.getBoundingClientRect(), dpr = Math.min(2, devicePixelRatio||1); BW = r.width; bc.width = BW*dpr; bc.height = BW*dpr; bx.setTransform(dpr,0,0,dpr,0,0); }
+  sizeBoard(); addEventListener('resize', sizeBoard);
+  function rrect(x,y,w,h,r){ r = Math.max(0, Math.min(r, w/2, h/2)); bx.beginPath(); bx.moveTo(x+r,y); bx.arcTo(x+w,y,x+w,y+h,r); bx.arcTo(x+w,y+h,x,y+h,r); bx.arcTo(x,y+h,x,y,r); bx.arcTo(x,y,x+w,y,r); bx.closePath(); }
+  function blob(cx,cy,w,h,col,i,t,rot,sq){
+    const m = Math.min(w,h), pad = Math.max(.7, m*.09), bw = w-2*pad, bh = h-2*pad;
+    const bob = reduce ? 0 : Math.sin(t*4 + i*1.7) * m * .035;
+    bx.save(); bx.translate(cx, cy + bob); if(rot) bx.rotate(rot); if(sq) bx.scale(sq[0], sq[1]);
+    bx.fillStyle = col; rrect(-bw/2, -bh/2, bw, bh, Math.min(bw,bh)*.46); bx.fill();
+    if(m > 11){
+      const er = Math.max(1, m*.07), ex = Math.min(bw*.2, m*.22), ey = -bh*.06;
+      const blink = !reduce && ((t + i*.37) % 4.2) < .13;
+      bx.fillStyle = '#17171C';
+      if(blink){ bx.fillRect(-ex-er, ey-er*.25, er*2, er*.5); bx.fillRect(ex-er, ey-er*.25, er*2, er*.5); }
+      else { bx.beginPath(); bx.arc(-ex, ey, er, 0, 7); bx.arc(ex, ey, er, 0, 7); bx.fill();
+        if(m > 30){ bx.fillStyle = '#fff'; bx.beginPath(); bx.arc(-ex+er*.35, ey-er*.35, er*.35, 0, 7); bx.arc(ex+er*.35, ey-er*.35, er*.35, 0, 7); bx.fill(); } }
+      if(m > 30){
+        bx.strokeStyle = '#17171C'; bx.lineWidth = Math.max(1.2, m*.03); bx.lineCap = 'round';
+        bx.beginPath(); bx.arc(0, ey + m*.1, m*.07, .15*Math.PI, .85*Math.PI); bx.stroke();
+        bx.fillStyle = 'rgba(242,107,79,.45)'; bx.beginPath(); bx.arc(-ex*1.5, ey + m*.1, m*.06, 0, 7); bx.arc(ex*1.5, ey + m*.1, m*.06, 0, 7); bx.fill();
+      }
+    }
+    bx.restore();
+  }
+  const ease = x => { const c1 = 1.9, c3 = c1 + 1; return 1 + c3*Math.pow(x-1,3) + c1*Math.pow(x-1,2); };
+  function drawBoard(now){
+    const t = now/1000; bx.clearRect(0,0,BW,BW);
+    if(crumble){
+      const e = (now - crumble.t0)/1000;
+      bx.save(); bx.globalAlpha = Math.min(1, e*1.5); bx.textAlign = 'center'; bx.textBaseline = 'middle';
+      bx.font = '700 ' + Math.round(BW*.3) + 'px Fredoka, sans-serif'; bx.fillStyle = '#1A4FAE'; bx.fillText('10.24', BW/2, BW/2 + BW*.02);
+      bx.fillStyle = '#FFC23D'; bx.fillText('10.24', BW/2, BW/2 - BW*.01); bx.restore();
+      crumble.parts.forEach((p,i)=>{
+        const d = Math.max(0, e - p.delay); const y = p.y + p.vy*d*BW + .5*2.6*BW*d*d, x = p.x + p.vx*d*BW;
+        if(y - p.h > BW + 40) return; blob(x, y, p.w, p.h, p.c, i, t, p.vr*d, null);
+      });
+      return;
+    }
+    const k = prevCells ? Math.min(1, (now - splitT0)/450) : 1;
+    const e = ease(k);
+    cells.forEach((r,i)=>{
+      let x = r.x, y = r.y, w = r.w, h = r.h;
+      if(prevCells && k < 1){ const p = prevCells[i>>1]; x = p.x + (r.x-p.x)*e; y = p.y + (r.y-p.y)*e; w = p.w + (r.w-p.w)*e; h = p.h + (r.h-p.h)*e; }
+      const sq = (prevCells && k < 1) ? [1 + .12*Math.sin(k*Math.PI), 1 - .12*Math.sin(k*Math.PI)] : null;
+      blob((x + w/2)*BW, (y + h/2)*BW, w*BW, h*BW, BC[r.c], i, t, 0, sq);
+    });
+    if(k >= 1) prevCells = null;
+  }
+  (function boardLoop(now){ if(!document.hidden) drawBoard(now); requestAnimationFrame(boardLoop); })(performance.now());
+  function splitTo(level){ prevCells = cells; cells = build(level); splitT0 = performance.now(); }
+  function crumbleBoard(){
+    crumble = { t0: performance.now(), parts: cells.map(r=>({ x:(r.x+r.w/2)*BW, y:(r.y+r.h/2)*BW, w:r.w*BW, h:r.h*BW, c:BC[r.c],
+      vx: rnd(-.25,.25), vy: rnd(-.6,-.1), vr: rnd(-6,6), delay: (1 - r.y)*.35 + Math.random()*.25 })) };
+    noiseHit(0, 1.3, 260, 'lowpass', .7);
+  }
+
   /* ---------- level effects ---------- */
   function center(){ const r=btn.getBoundingClientRect(); return [r.left+r.width/2, r.top+r.height/2]; }
   function ring(delay){ setTimeout(()=>{ const d=document.createElement('div'); d.className='ring'; wrap.appendChild(d); d.addEventListener('animationend',()=>d.remove()); }, delay); }
@@ -410,12 +489,13 @@ main{ position:relative; z-index:1; height:100%; display:flex; flex-direction:co
   btn.addEventListener('click', ()=>{
     initAudio();
     if(busy || n >= MAX) return;
-    n++; render(); fx(n);
-    if(n === MAX) finaleShow();
+    n++; render(); fx(n); splitTo(n);
+    if(n === MAX){ busy = true; setTimeout(crumbleBoard, 1100); setTimeout(finaleShow, 2600); }
   });
   $('again').addEventListener('click', ()=>{
     finale.className='finale'; lyric.textContent=''; n=1; busy=false;
     clearInterval(fwTimer); clearInterval(cakeTimer); lyricTimers.forEach(clearTimeout);
+    crumble = null; prevCells = null; cells = build(1);
     render(); btn.focus();
   });
   render();
