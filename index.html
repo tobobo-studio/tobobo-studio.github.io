@@ -493,8 +493,6 @@ main{ position:relative; z-index:1; height:100%; display:flex; flex-direction:co
       bx.fillStyle = ch==='O' ? col : OPAL[ch]; bx.fillRect(x0 + x*p, y0 + y*p, (e-x)*p, p); x=e; } });
   }
   const ease = x => { const c1 = 1.7, c3 = c1 + 1; return 1 + c3*Math.pow(x-1,3) + c1*Math.pow(x-1,2); };
-  // 타자기 소리 (탁! 하는 키 소리 + 낮은 턱)
-  function typeClick(){ if(!ac) return; noiseHit(0, .03, 2800 + Math.random()*800, 'highpass', .6); chip(150 + Math.random()*50, ac.currentTime, .035, .14, 'square'); }
   function drawBoard(now){
     const t = now/1000; bx.clearRect(0,0,BW,BW);
     if(crumble){
@@ -530,22 +528,17 @@ main{ position:relative; z-index:1; height:100%; display:flex; flex-direction:co
       bx.textAlign = 'center'; bx.textBaseline = 'middle';
       if(e < 1.9){
         const L1 = '어라...', L2 = '쭈꾸미의 갯수가...', total = L1.length + L2.length, shown = Math.min(total, Math.floor(e*11));
-        if(shown > reveal.chars){ reveal.chars = shown; typeClick(); if(shown === total) setTimeout(()=>{ if(ac) chip(2093, ac.currentTime, .25, .1, 'pulse'); }, 120); }
-        const fs = Math.round(BW*.075), cur = (Math.floor(e*3) % 2) ? '_' : ' '; bx.font = fs + 'px Galmuri9, sans-serif'; bx.fillStyle = '#f4f4f4';
-        bx.fillText(L1.slice(0, Math.min(shown, L1.length)) + (shown <= L1.length ? cur : ''), cx, cy - fs);
-        if(shown > L1.length) bx.fillText(L2.slice(0, shown - L1.length) + cur, cx, cy + fs);
+        if(shown > reveal.chars){ reveal.chars = shown; if(ac) chip(1100 + Math.random()*200, ac.currentTime, .03, .07, 'square'); }
+        const fs = Math.round(BW*.075); bx.font = fs + 'px Galmuri9, sans-serif'; bx.fillStyle = '#f4f4f4';
+        bx.fillText(L1.slice(0, Math.min(shown, L1.length)), cx, cy - fs);
+        if(shown > L1.length) bx.fillText(L2.slice(0, shown - L1.length), cx, cy + fs);
       } else {
-        // 0부터 1024까지 쵤르르 올라감
-        const p = Math.min(1, (e - 1.9)/1.2), v = Math.floor(1024*(1 - Math.pow(1 - p, 3)));
-        if(v !== reveal.v && now - (reveal.tick || 0) > 45 && ac){ reveal.tick = now; chip(300 + p*900, ac.currentTime, .025, .08, 'square'); }
-        reveal.v = v;
-        if(p >= 1 && !reveal.hit){ reveal.hit = now; if(ac){ const t0 = ac.currentTime; [523.25,659.25,783.99,1046.5].forEach(f=> chip(f, t0, .35, .1, 'square')); noiseHit(0, .2, 1200, 'highpass', .3); } }
-        const since = reveal.hit ? (now - reveal.hit)/1000 : -1;
-        const fs = Math.round(BW*.3), off = Math.max(3, Math.round(fs/12)), pop = since < 0 ? 1 : since < .1 ? 1.3 : since < .2 ? 1.1 : 1;
+        if(!reveal.hit){ reveal.hit = true; if(ac){ const t0 = ac.currentTime; [523.25,659.25,783.99,1046.5].forEach(f=> chip(f, t0, .35, .1, 'square')); noiseHit(0, .2, 1200, 'highpass', .3); } }
+        const fs = Math.round(BW*.3), off = Math.max(3, Math.round(fs/12)), pop = e < 2.02 ? 1.3 : (e < 2.12 ? 1.1 : 1);
         bx.font = fs + 'px GalmuriNum, monospace';
         bx.save(); bx.translate(cx, cy); bx.scale(pop, pop);
-        bx.fillStyle = '#b13e53'; bx.fillText(String(v), off, off);
-        bx.fillStyle = (since >= 0 && Math.floor(e*4) % 2) ? '#73eff7' : '#f4f4f4'; bx.fillText(String(v), 0, 0);
+        bx.fillStyle = '#b13e53'; bx.fillText('1024', off, off);
+        bx.fillStyle = (Math.floor(e*4) % 2) ? '#73eff7' : '#f4f4f4'; bx.fillText('1024', 0, 0);
         bx.restore();
       }
     }
@@ -670,7 +663,7 @@ main{ position:relative; z-index:1; height:100%; display:flex; flex-direction:co
     initAudio();
     if(busy || n >= MAX) return;
     n++; render(); fx(n); splitTo(n);
-    if(n === MAX){ busy = true; reveal = { t0: performance.now() + 900, chars: 0, hit: false }; setTimeout(crumbleBoard, 4700); setTimeout(()=>$('boardpic').classList.add('show'), 6400); setTimeout(finaleShow, 7700); }
+    if(n === MAX){ busy = true; reveal = { t0: performance.now() + 900, chars: 0, hit: false }; setTimeout(crumbleBoard, 3900); setTimeout(()=>$('boardpic').classList.add('show'), 5600); setTimeout(finaleShow, 6900); }
   });
   $('again').addEventListener('click', ()=>{
     finale.className='finale'; finale.scrollTop=0; $('mbDone').textContent=''; lyric.textContent=''; n=1; busy=false;
