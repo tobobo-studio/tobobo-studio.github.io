@@ -6,7 +6,7 @@
 <title>제곱을 만들어보자!</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800&family=Fredoka:wght@600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800&family=Fredoka:wght@600;700&family=Jua&display=swap" rel="stylesheet">
 <style>
 :root{
   --bg:#17171C;
@@ -27,7 +27,8 @@ html{ height:100%; scroll-padding-top:env(safe-area-inset-top,0px); }
 *,*::before,*::after{ box-sizing:border-box; }
 body{
   margin:0; height:100%; background:var(--bg); color:var(--grey900);
-  font-family:"Toss Product Sans", Pretendard, -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+  font-family:"Jua", "Toss Product Sans", Pretendard, -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+  font-synthesis:none;
   -webkit-font-smoothing:antialiased; letter-spacing:-0.02em; overflow:hidden;
   -webkit-tap-highlight-color:transparent;
 }
@@ -54,7 +55,7 @@ main{ position:relative; z-index:1; height:100%; display:flex; flex-direction:co
 .bubble{ max-width:min(88vw, 360px); }
 .board{
   position:relative; margin-top:24px; width:min(80vw, 38vh, 340px); aspect-ratio:1;
-  background:var(--grey50); border-radius:22px; box-shadow:inset 0 0 0 2px rgba(255,255,255,.06);
+  background:radial-gradient(circle at 50% 45%, #34343D, #202027 72%); border-radius:22px; box-shadow:inset 0 0 0 2px rgba(255,255,255,.06);
 }
 .board canvas{ position:absolute; inset:0; width:100%; height:100%; border-radius:22px; }
 
@@ -398,21 +399,33 @@ main{ position:relative; z-index:1; height:100%; display:flex; flex-direction:co
   sizeBoard(); addEventListener('resize', sizeBoard);
   function rrect(x,y,w,h,r){ r = Math.max(0, Math.min(r, w/2, h/2)); bx.beginPath(); bx.moveTo(x+r,y); bx.arcTo(x+w,y,x+w,y+h,r); bx.arcTo(x+w,y+h,x,y+h,r); bx.arcTo(x,y+h,x,y,r); bx.arcTo(x,y,x+w,y,r); bx.closePath(); }
   function blob(cx,cy,w,h,col,i,t,rot,sq){
-    const m = Math.min(w,h), pad = Math.max(.7, m*.09), bw = w-2*pad, bh = h-2*pad;
-    const bob = reduce ? 0 : Math.sin(t*4 + i*1.7) * m * .035;
+    const m = Math.min(w,h), pad = Math.max(.6, m*.06), bw = w-2*pad, bh = h-2*pad, rx = bw/2, ry = bh/2;
+    const bob = reduce ? 0 : Math.sin(t*4 + i*1.7) * m * .03;
     bx.save(); bx.translate(cx, cy + bob); if(rot) bx.rotate(rot); if(sq) bx.scale(sq[0], sq[1]);
-    bx.fillStyle = col; rrect(-bw/2, -bh/2, bw, bh, Math.min(bw,bh)*.46); bx.fill();
-    if(m > 11){
-      const er = Math.max(1, m*.07), ex = Math.min(bw*.2, m*.22), ey = -bh*.06;
+    // 흰자 (울통불통)
+    bx.fillStyle = '#FFF8EA'; bx.beginPath();
+    if(m < 8){ bx.ellipse(0, 0, rx, ry, 0, 0, 7); }
+    else {
+      const N = 9, pts = [];
+      for(let k=0;k<N;k++){ const a = k/N*Math.PI*2, f = .87 + .13*Math.sin(a*3 + i*2.3)*Math.cos(a*2 + i); pts.push([Math.cos(a)*rx*f, Math.sin(a)*ry*f]); }
+      for(let k=0;k<=N;k++){ const p = pts[k%N], q = pts[(k+1)%N], mx = (p[0]+q[0])/2, my = (p[1]+q[1])/2; if(k===0) bx.moveTo(mx,my); else bx.quadraticCurveTo(p[0],p[1],mx,my); }
+    }
+    bx.closePath(); bx.fill();
+    // 노른자
+    const yr = Math.min(rx, ry)*.52, yx = -rx*.04, yy = -ry*.04;
+    bx.fillStyle = '#FFB31F'; bx.beginPath(); bx.arc(yx, yy, yr, 0, 7); bx.fill();
+    if(m > 16){ bx.fillStyle = 'rgba(255,255,255,.75)'; bx.beginPath(); bx.arc(yx - yr*.45, yy - yr*.48, yr*.17, 0, 7); bx.fill(); }
+    if(m > 14){
+      const er = Math.max(.9, yr*.13), ex = yr*.36, ey = yy + yr*.02;
       const blink = !reduce && ((t + i*.37) % 4.2) < .13;
-      bx.fillStyle = '#17171C';
-      if(blink){ bx.fillRect(-ex-er, ey-er*.25, er*2, er*.5); bx.fillRect(ex-er, ey-er*.25, er*2, er*.5); }
-      else { bx.beginPath(); bx.arc(-ex, ey, er, 0, 7); bx.arc(ex, ey, er, 0, 7); bx.fill();
-        if(m > 30){ bx.fillStyle = '#fff'; bx.beginPath(); bx.arc(-ex+er*.35, ey-er*.35, er*.35, 0, 7); bx.arc(ex+er*.35, ey-er*.35, er*.35, 0, 7); bx.fill(); } }
-      if(m > 30){
-        bx.strokeStyle = '#17171C'; bx.lineWidth = Math.max(1.2, m*.03); bx.lineCap = 'round';
-        bx.beginPath(); bx.arc(0, ey + m*.1, m*.07, .15*Math.PI, .85*Math.PI); bx.stroke();
-        bx.fillStyle = 'rgba(242,107,79,.45)'; bx.beginPath(); bx.arc(-ex*1.5, ey + m*.1, m*.06, 0, 7); bx.arc(ex*1.5, ey + m*.1, m*.06, 0, 7); bx.fill();
+      bx.fillStyle = '#2A1A0A';
+      if(blink){ bx.fillRect(yx-ex-er, ey-er*.25, er*2, er*.5); bx.fillRect(yx+ex-er, ey-er*.25, er*2, er*.5); }
+      else { bx.beginPath(); bx.arc(yx-ex, ey, er, 0, 7); bx.arc(yx+ex, ey, er, 0, 7); bx.fill();
+        if(m > 40){ bx.fillStyle = '#fff'; bx.beginPath(); bx.arc(yx-ex+er*.35, ey-er*.35, er*.35, 0, 7); bx.arc(yx+ex+er*.35, ey-er*.35, er*.35, 0, 7); bx.fill(); } }
+      if(m > 34){
+        bx.strokeStyle = '#2A1A0A'; bx.lineWidth = Math.max(1.2, yr*.07); bx.lineCap = 'round';
+        bx.beginPath(); bx.arc(yx, ey + yr*.22, yr*.15, .15*Math.PI, .85*Math.PI); bx.stroke();
+        bx.fillStyle = 'rgba(235,80,50,.45)'; bx.beginPath(); bx.arc(yx - ex*1.6, ey + yr*.3, yr*.12, 0, 7); bx.arc(yx + ex*1.6, ey + yr*.3, yr*.12, 0, 7); bx.fill();
       }
     }
     bx.restore();
