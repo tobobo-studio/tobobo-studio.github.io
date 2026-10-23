@@ -402,18 +402,33 @@ main{ position:relative; z-index:1; height:100%; display:flex; flex-direction:co
     const m = Math.min(w,h), pad = Math.max(.6, m*.06), sz = m-2*pad, rx = sz/2, ry = sz/2;
     const bob = reduce ? 0 : Math.sin(t*4 + i*1.7) * m * .03;
     bx.save(); bx.translate(cx, cy + bob); if(rot) bx.rotate(rot); if(sq) bx.scale(sq[0], sq[1]);
-    // 흰자 (울통불통)
-    bx.fillStyle = '#FFF8EA'; bx.beginPath();
-    if(m < 8){ bx.ellipse(0, 0, rx, ry, 0, 0, 7); }
-    else {
-      const N = 9, pts = [];
-      for(let k=0;k<N;k++){ const a = k/N*Math.PI*2, f = .87 + .13*Math.sin(a*3 + i*2.3)*Math.cos(a*2 + i); pts.push([Math.cos(a)*rx*f, Math.sin(a)*ry*f]); }
+    const bs = reduce ? 0 : Math.floor(t*5) % 3, lw = Math.max(1, m*.028);
+    const wob = (N, rx2, ry2, ox, oy, base, amp) => {
+      const pts = [];
+      for(let k=0;k<N;k++){ const a = k/N*Math.PI*2, s = Math.sin((k+1)*12.9898 + i*78.233 + bs*37.719)*43758.5453, jr = (s - Math.floor(s))*2 - 1, f = base(a) + amp*jr; pts.push([ox + Math.cos(a)*rx2*f, oy + Math.sin(a)*ry2*f]); }
+      bx.beginPath();
       for(let k=0;k<=N;k++){ const p = pts[k%N], q = pts[(k+1)%N], mx = (p[0]+q[0])/2, my = (p[1]+q[1])/2; if(k===0) bx.moveTo(mx,my); else bx.quadraticCurveTo(p[0],p[1],mx,my); }
-    }
-    bx.closePath(); bx.fill();
-    // 노른자
+      bx.closePath();
+    };
+    const whiteBase = a => .87 + .13*Math.sin(a*3 + i*2.3)*Math.cos(a*2 + i);
     const yr = Math.min(rx, ry)*.52, yx = -rx*.04, yy = -ry*.04;
-    bx.fillStyle = '#FFB31F'; bx.beginPath(); bx.arc(yx, yy, yr, 0, 7); bx.fill();
+    if(m < 8){
+      bx.fillStyle = '#FFF8EA'; bx.beginPath(); bx.ellipse(0, 0, rx, ry, 0, 0, 7); bx.fill();
+      bx.fillStyle = '#FFB31F'; bx.beginPath(); bx.arc(yx, yy, yr, 0, 7); bx.fill();
+    } else {
+      // 흰자: 손그림 울통불통 + 살짝 어긋난 외곽선
+      bx.lineJoin = 'round'; bx.lineCap = 'round';
+      bx.fillStyle = '#FFF8EA'; wob(11, rx, ry, 0, 0, whiteBase, .035); bx.fill();
+      bx.strokeStyle = '#F26B4F'; bx.lineWidth = lw; wob(11, rx, ry, m*.05, -m*.04, whiteBase, .05); bx.stroke();
+      // 노른자: 울통불통 + 잌크 외곽선
+      bx.fillStyle = '#FFB31F'; wob(8, yr, yr, yx, yy, ()=>1, .05); bx.fill();
+      bx.strokeStyle = '#2A1A0A'; bx.lineWidth = lw*.8; wob(8, yr, yr, yx + m*.03, yy - m*.025, ()=>1, .07); bx.stroke();
+      // 큰 후라이는 반짝 낙서
+      if(m > 60){
+        bx.strokeStyle = '#F4EFE6'; bx.lineWidth = lw; const sx = rx*.78, sy = -ry*.82, L = m*.07;
+        [[-.9,-.3],[0,-1],[.9,-.3]].forEach(([dx,dy],k)=>{ const wig = bs*.02*(k-1); bx.beginPath(); bx.moveTo(sx + dx*L*.5, sy + dy*L*.5); bx.lineTo(sx + dx*L*(1.2+wig), sy + dy*L*(1.2-wig)); bx.stroke(); });
+      }
+    }
     if(m > 16){ bx.fillStyle = 'rgba(255,255,255,.75)'; bx.beginPath(); bx.arc(yx - yr*.45, yy - yr*.48, yr*.17, 0, 7); bx.fill(); }
     if(m > 14){
       const er = Math.max(.9, yr*.13), ex = yr*.36, ey = yy + yr*.02;
