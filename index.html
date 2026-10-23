@@ -110,7 +110,7 @@ main{ position:relative; z-index:1; height:100%; display:flex; flex-direction:co
 .finale > :last-child{ margin-bottom:auto; }
 .finale > *{ flex-shrink:0; }
 .msgbox{ display:none; width:min(86vw, 360px); background:var(--grey100); border-radius:20px; padding:18px; }
-.finale.s5 .msgbox{ display:block; animation:lyr .5s cubic-bezier(.3,1.6,.5,1); }
+.finale.sm .msgbox{ display:block; animation:lyr .5s cubic-bezier(.3,1.6,.5,1); }
 .mb-title{ font-size:20px; color:var(--grey900); }
 .mb-sub{ font-size:14px; color:var(--grey500); margin-top:4px; }
 .mb-in{ display:block; width:100%; margin-top:10px; background:var(--grey50); border:0; border-radius:12px; padding:13px 14px; color:var(--grey900); font:inherit; font-size:16px; outline:none; }
@@ -400,7 +400,7 @@ main{ position:relative; z-index:1; height:100%; display:flex; flex-direction:co
     [392,.75],[392,.25],[440,1],[392,1],[587.33,1],[523.25,2],
     [392,.75],[392,.25],[783.99,1],[659.25,1],[523.25,1],[493.88,1],[440,2],
     [698.46,.75],[698.46,.25],[659.25,1],[523.25,1],[587.33,1],[523.25,3]];
-  const LYRICS=[[0,'🎵 생일 축하합니다. (박수 쳐라)'],[6,'🎵 생일 축하합니다! (더 크게)'],[12,'🎵 사랑하는 보봇의~ (나다)'],[19,'🎵 생일 축하합니다!!! (선물은?)']];
+  const LYRICS=[[0,'🎵 생일 축하합니다. '],[6,'🎵 생일 축하합니다!'],[12,'🎵 사랑하는 보봇의~'],[19,'🎵 생일 축하합니다!!!']];
   function playSong(onEnd){
     lyricTimers.forEach(clearTimeout); lyricTimers=[];
     const beat=.34, starts=[]; let acc=0; SONG.forEach(([,d])=>{ starts.push(acc); acc+=d*beat; });
@@ -588,7 +588,7 @@ main{ position:relative; z-index:1; height:100%; display:flex; flex-direction:co
     step('s2', 2900, SFX.boing);
     step('s3', 4700, SFX.whistle);
     step('s4', 6400, SFX.honk);
-    setTimeout(()=>{ playSong(()=>{ finale.classList.add('s5'); setTimeout(()=>$('msgbox').scrollIntoView({behavior: reduce ? 'auto' : 'smooth', block:'center'}), 120); }); }, 7600);
+    setTimeout(()=>{ finale.classList.add('sm'); setTimeout(()=>$('msgbox').scrollIntoView({behavior: reduce ? 'auto' : 'smooth', block:'center'}), 120); playSong(()=>{ finale.classList.add('s5'); }); }, 7600);
   }
 
   btn.addEventListener('click', ()=>{
