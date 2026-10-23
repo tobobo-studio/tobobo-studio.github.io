@@ -127,22 +127,27 @@ main{ position:relative; z-index:1; height:100%; display:flex; flex-direction:co
 .finale.s4 .p2{ opacity:1; transform:rotate(7deg); }
 .say{
   position:absolute; z-index:5; color:var(--bg); font-size:14px; line-height:1.4;
-  padding:10px 14px; width:max-content; max-width:200px; opacity:0; transform:scale(.4);
+  padding:8px 12px; width:max-content; max-width:200px; opacity:0; transform:scale(.4);
   transition:opacity .2s steps(2) .4s, transform .3s steps(3) .4s;
 }
 /* 말풍선 몸통+꼬리를 한 덩어리로 그리고 외곽선을 통째로 둘러서 꼬리까지 이어지게 */
 .sb{
-  position:absolute; inset:0; z-index:0; background:var(--text); border-radius:18px;
-  filter:drop-shadow(2.5px 0 0 var(--bg)) drop-shadow(-2.5px 0 0 var(--bg)) drop-shadow(0 2.5px 0 var(--bg)) drop-shadow(0 -2.5px 0 var(--bg)) drop-shadow(3px 4px 0 rgba(0,0,0,.3));
+  position:absolute; inset:0; z-index:0; background:var(--text);
+  box-shadow:0 -4px 0 0 var(--text), 0 4px 0 0 var(--text), -4px 0 0 0 var(--text), 4px 0 0 0 var(--text),
+    0 -8px 0 -4px var(--text), 0 8px 0 -4px var(--text), -8px 0 0 -4px var(--text), 8px 0 0 -4px var(--text);
+  filter:drop-shadow(3px 0 0 var(--bg)) drop-shadow(-3px 0 0 var(--bg)) drop-shadow(0 3px 0 var(--bg)) drop-shadow(0 -3px 0 var(--bg)) drop-shadow(4px 5px 0 rgba(0,0,0,.35));
 }
-.sb::after{ content:""; position:absolute; left:18px; width:26px; height:20px; background:var(--text); clip-path:polygon(0 0,100% 0,18% 100%); }
-.say.up .sb::after{ top:calc(100% - 4px); }
-.say.down .sb::after{ bottom:calc(100% - 4px); transform:scaleY(-1); }
+.sb::after{
+  content:""; position:absolute; left:16px; width:30px; height:24px; background:var(--text);
+  clip-path:polygon(0 0,30px 0,30px 6px,22px 6px,22px 12px,14px 12px,14px 18px,6px 18px,6px 24px,0 24px);
+}
+.say.up .sb::after{ top:100%; }
+.say.down .sb::after{ bottom:100%; transform:scaleY(-1); }
 .st{ position:relative; z-index:1; display:block; }
-.b3{ left:-10px; top:-42px; transform-origin:20% 100%; }
-.b1{ left:8px; top:-66px; transform-origin:20% 100%; }
-.b2{ right:-4px; bottom:-64px; transform-origin:80% 0; }
-.b2 .sb::after{ left:auto; right:18px; transform:scale(-1,-1); }
+.b3{ left:-10px; top:-46px; transform-origin:20% 100%; }
+.b1{ left:8px; top:-70px; transform-origin:20% 100%; }
+.b2{ right:-4px; bottom:-68px; transform-origin:80% 0; }
+.b2 .sb::after{ left:auto; right:16px; transform:scale(-1,-1); }
 .finale.s2 .b3, .finale.s3 .b1, .finale.s4 .b2{ opacity:1; transform:none; }
 @keyframes rattle{
   0%{ translate:0 0; rotate:0deg; } 10%{ translate:-6px 4px; rotate:-5deg; } 20%{ translate:6px -4px; rotate:6deg; }
