@@ -301,12 +301,33 @@ main{ position:relative; z-index:1; height:100%; display:flex; flex-direction:co
 
   /* ---------- audio ---------- */
   let ac = null, songEnd = 0, lyricTimers = [];
-  function initAudio(){ if(!ac){ try{ ac = new (window.AudioContext||window.webkitAudioContext)(); }catch(e){} } if(ac && ac.state==='suspended') ac.resume(); }
+  let OUT = null, unlocked = false;
+  function silentWav(){
+    const n = 4000, b = new Uint8Array(44 + n), v = new DataView(b.buffer), w = (o,s)=>{ for(let i=0;i<s.length;i++) b[o+i] = s.charCodeAt(i); };
+    w(0,'RIFF'); v.setUint32(4, 36+n, true); w(8,'WAVE'); w(12,'fmt '); v.setUint32(16,16,true); v.setUint16(20,1,true); v.setUint16(22,1,true);
+    v.setUint32(24,8000,true); v.setUint32(28,8000,true); v.setUint16(32,1,true); v.setUint16(34,8,true); w(36,'data'); v.setUint32(40,n,true); b.fill(128,44);
+    let s = ''; for(let i=0;i<b.length;i++) s += String.fromCharCode(b[i]); return 'data:audio/wav;base64,' + btoa(s);
+  }
+  // 아이폰 무음 모드에서도 소리 나게: 오디오 세션을 '재생'으로 전환
+  function unlockIOS(){
+    if(unlocked) return; unlocked = true;
+    try{ if(navigator.audioSession) navigator.audioSession.type = 'playback'; }catch(e){}
+    try{ const a = new Audio(silentWav()); a.loop = true; a.setAttribute('playsinline',''); const pr = a.play(); if(pr) pr.catch(()=>{}); }catch(e){}
+  }
+  function initAudio(){
+    unlockIOS();
+    if(!ac){ try{
+      ac = new (window.AudioContext||window.webkitAudioContext)();
+      const comp = ac.createDynamicsCompressor(); comp.threshold.value = -14; comp.ratio.value = 4;
+      const m = ac.createGain(); m.gain.value = 1.8; m.connect(comp).connect(ac.destination); OUT = m;
+    }catch(e){} }
+    if(ac && ac.state==='suspended') ac.resume();
+  }
   function note(f,t,dur,type,vol){
     if(!ac) return; const o=ac.createOscillator(), g=ac.createGain();
     o.type=type||'triangle'; o.frequency.setValueAtTime(f,t);
     g.gain.setValueAtTime(.0001,t); g.gain.exponentialRampToValueAtTime(vol||.15,t+.015); g.gain.exponentialRampToValueAtTime(.0001,t+dur);
-    o.connect(g).connect(ac.destination); o.start(t); o.stop(t+dur+.05);
+    o.connect(g).connect(OUT); o.start(t); o.stop(t+dur+.05);
   }
   function clickSound(lv){
     if(!ac) return; const t=ac.currentTime, b=261.63*Math.pow(2,(lv-1)/4.5);
@@ -318,14 +339,14 @@ main{ position:relative; z-index:1; height:100%; display:flex; flex-direction:co
     for(let i=0;i<len;i++) d[i]=(Math.random()*2-1)*Math.pow(1-i/len,3);
     const s=ac.createBufferSource(), f=ac.createBiquadFilter(), g=ac.createGain();
     s.buffer=buf; f.type='lowpass'; f.frequency.value=800+Math.random()*900; g.gain.value=.3;
-    s.connect(f).connect(g).connect(ac.destination); s.start();
+    s.connect(f).connect(g).connect(OUT); s.start();
   }
   /* ---------- cartoon sfx ---------- */
   function sweep(type,f0,f1,dur,vol,t0){
     if(!ac) return null; const t=ac.currentTime+(t0||0), o=ac.createOscillator(), g=ac.createGain();
     o.type=type; o.frequency.setValueAtTime(f0,t); o.frequency.exponentialRampToValueAtTime(f1,t+dur);
     g.gain.setValueAtTime(.0001,t); g.gain.exponentialRampToValueAtTime(vol,t+.02); g.gain.setValueAtTime(vol,t+dur*.75); g.gain.exponentialRampToValueAtTime(.0001,t+dur);
-    o.connect(g).connect(ac.destination); o.start(t); o.stop(t+dur+.05); o._t=t; o._d=dur; return o;
+    o.connect(g).connect(OUT); o.start(t); o.stop(t+dur+.05); o._t=t; o._d=dur; return o;
   }
   function vib(o,rate,depth){
     if(!o) return; const l=ac.createOscillator(), lg=ac.createGain();
@@ -335,7 +356,7 @@ main{ position:relative; z-index:1; height:100%; display:flex; flex-direction:co
     if(!ac) return; const t=ac.currentTime+t0, len=Math.floor(ac.sampleRate*dur), b=ac.createBuffer(1,len,ac.sampleRate), d=b.getChannelData(0);
     for(let i=0;i<len;i++) d[i]=(Math.random()*2-1)*Math.pow(1-i/len,2);
     const s=ac.createBufferSource(), f=ac.createBiquadFilter(), g=ac.createGain();
-    s.buffer=b; f.type=type; f.frequency.value=freq; g.gain.value=vol; s.connect(f).connect(g).connect(ac.destination); s.start(t);
+    s.buffer=b; f.type=type; f.frequency.value=freq; g.gain.value=vol; s.connect(f).connect(g).connect(OUT); s.start(t);
   }
   const SFX = {
     // 두둥탁
@@ -344,7 +365,7 @@ main{ position:relative; z-index:1; height:100%; display:flex; flex-direction:co
       [0,.2].forEach(d=>{ const o=ac.createOscillator(), g=ac.createGain(); o.type='sine';
         o.frequency.setValueAtTime(160,t+d); o.frequency.exponentialRampToValueAtTime(48,t+d+.28);
         g.gain.setValueAtTime(.7,t+d); g.gain.exponentialRampToValueAtTime(.001,t+d+.32);
-        o.connect(g).connect(ac.destination); o.start(t+d); o.stop(t+d+.36); });
+        o.connect(g).connect(OUT); o.start(t+d); o.stop(t+d+.36); });
       noiseHit(.46,.16,1800,'highpass',.45);
     },
     // 띄용~ (스프링)
@@ -358,6 +379,23 @@ main{ position:relative; z-index:1; height:100%; display:flex; flex-direction:co
     }
   };
 
+  let pulseWave = null;
+  function pulse(){
+    if(!pulseWave){ const N = 32, re = new Float32Array(N), im = new Float32Array(N); for(let k=1;k<N;k++) re[k] = 2/(k*Math.PI)*Math.sin(k*Math.PI*.25); pulseWave = ac.createPeriodicWave(re, im); }
+    return pulseWave;
+  }
+  function chip(f,t,dur,vol,kind){
+    if(!ac) return; const o = ac.createOscillator(), g = ac.createGain();
+    if(kind === 'pulse') o.setPeriodicWave(pulse()); else o.type = kind || 'square';
+    o.frequency.setValueAtTime(f, t);
+    g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(vol, t + .005);
+    g.gain.setValueAtTime(vol, t + Math.max(.01, dur - .03)); g.gain.linearRampToValueAtTime(0, t + dur);
+    o.connect(g).connect(OUT); o.start(t); o.stop(t + dur + .02);
+  }
+  function hat(t, vol){ if(ac) noiseHit(Math.max(0, t - ac.currentTime), .045, 7000, 'highpass', vol); }
+  const CHORD = ['C','C','C','C','C','G', 'G','G','G','G','G','C', 'C','C','C','C','F','G','F', 'F','F','C','C','G','C'];
+  const BASS = { C:130.81, F:87.31, G:98.00 };
+  const ARP = { C:[523.25,659.25,783.99], F:[698.46,880,1046.5], G:[587.33,783.99,987.77] };
   const SONG=[[392,.75],[392,.25],[440,1],[392,1],[523.25,1],[493.88,2],
     [392,.75],[392,.25],[440,1],[392,1],[587.33,1],[523.25,2],
     [392,.75],[392,.25],[783.99,1],[659.25,1],[523.25,1],[493.88,1],[440,2],
@@ -365,8 +403,21 @@ main{ position:relative; z-index:1; height:100%; display:flex; flex-direction:co
   const LYRICS=[[0,'🎵 생일 축하합니다. (박수 쳐라)'],[6,'🎵 생일 축하합니다! (더 크게)'],[12,'🎵 사랑하는 보봇의~ (나다)'],[19,'🎵 생일 축하합니다!!! (선물은?)']];
   function playSong(onEnd){
     lyricTimers.forEach(clearTimeout); lyricTimers=[];
-    const beat=.42, starts=[]; let acc=0; SONG.forEach(([,d])=>{ starts.push(acc); acc+=d*beat; });
-    if(ac){ let t=ac.currentTime+.1; SONG.forEach(([f,d])=>{ note(f,t,d*beat*.95,'triangle',.2); note(f/2,t,d*beat*.9,'sine',.06); t+=d*beat; }); songEnd=t; }
+    const beat=.34, starts=[]; let acc=0; SONG.forEach(([,d])=>{ starts.push(acc); acc+=d*beat; });
+    if(ac){
+      let t = ac.currentTime + .1;
+      SONG.forEach(([f,d],i)=>{
+        const len = d*beat, ch = CHORD[i];
+        chip(f, t, len*.9, .24, 'pulse');                       // 멜로디 (8비트 펄스)
+        chip(BASS[ch], t, len*.95, .38, 'triangle');            // 베이스 (삼각파)
+        const tones = ARP[ch];                                   // 칩튠 아르페지오
+        for(let s=0, a=0; s < len - .01; s += .064, a++) chip(tones[a%3], t+s, .055, .055, 'square');
+        for(let s=0; s < len - .01; s += beat) hat(t+s, s===0 ? .3 : .18);   // 드럼
+        t += len;
+      });
+      [523.25,659.25,783.99,1046.5].forEach((f,k)=> chip(f, t + .05 + k*.07, .14, .2, 'pulse'));   // 끝 효과음
+      songEnd = t + .4;
+    }
     LYRICS.forEach(([i,txt])=> lyricTimers.push(setTimeout(()=>{ lyric.innerHTML='<span>'+txt+'</span>'; }, 100 + starts[i]*1000)));
     lyricTimers.push(setTimeout(()=>{ onEnd && onEnd(); }, 100 + acc*1000));
   }
