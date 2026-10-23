@@ -126,27 +126,22 @@ main{ position:relative; z-index:1; height:100%; display:flex; flex-direction:co
 .finale.s4 .p2{ opacity:1; transform:rotate(7deg); }
 .say{
   position:absolute; z-index:5; color:var(--bg); font-size:14px; line-height:1.4;
-  padding:8px 12px; width:max-content; max-width:200px; opacity:0; transform:scale(.4);
+  padding:10px 14px; width:max-content; max-width:200px; opacity:0; transform:scale(.4);
   transition:opacity .2s steps(2) .4s, transform .3s steps(3) .4s;
 }
 /* 말풍선 몸통+꼬리를 한 덩어리로 그리고 외곽선을 통째로 둘러서 꼬리까지 이어지게 */
 .sb{
-  position:absolute; inset:0; z-index:0; background:var(--text);
-  box-shadow:0 -4px 0 0 var(--text), 0 4px 0 0 var(--text), -4px 0 0 0 var(--text), 4px 0 0 0 var(--text),
-    0 -8px 0 -4px var(--text), 0 8px 0 -4px var(--text), -8px 0 0 -4px var(--text), 8px 0 0 -4px var(--text);
-  filter:drop-shadow(3px 0 0 var(--bg)) drop-shadow(-3px 0 0 var(--bg)) drop-shadow(0 3px 0 var(--bg)) drop-shadow(0 -3px 0 var(--bg)) drop-shadow(4px 5px 0 rgba(0,0,0,.35));
+  position:absolute; inset:0; z-index:0; background:var(--text); border-radius:18px;
+  filter:drop-shadow(2.5px 0 0 var(--bg)) drop-shadow(-2.5px 0 0 var(--bg)) drop-shadow(0 2.5px 0 var(--bg)) drop-shadow(0 -2.5px 0 var(--bg)) drop-shadow(3px 4px 0 rgba(0,0,0,.3));
 }
-.sb::after{
-  content:""; position:absolute; left:16px; width:30px; height:24px; background:var(--text);
-  clip-path:polygon(0 0,30px 0,30px 6px,22px 6px,22px 12px,14px 12px,14px 18px,6px 18px,6px 24px,0 24px);
-}
-.say.up .sb::after{ top:100%; }
-.say.down .sb::after{ bottom:100%; transform:scaleY(-1); }
+.sb::after{ content:""; position:absolute; left:18px; width:26px; height:20px; background:var(--text); clip-path:polygon(0 0,100% 0,18% 100%); }
+.say.up .sb::after{ top:calc(100% - 4px); }
+.say.down .sb::after{ bottom:calc(100% - 4px); transform:scaleY(-1); }
 .st{ position:relative; z-index:1; display:block; }
-.b3{ left:-10px; top:-46px; transform-origin:20% 100%; }
-.b1{ left:8px; top:-70px; transform-origin:20% 100%; }
-.b2{ right:-4px; bottom:-68px; transform-origin:80% 0; }
-.b2 .sb::after{ left:auto; right:16px; transform:scale(-1,-1); }
+.b3{ left:-10px; top:-42px; transform-origin:20% 100%; }
+.b1{ left:8px; top:-66px; transform-origin:20% 100%; }
+.b2{ right:-4px; bottom:-64px; transform-origin:80% 0; }
+.b2 .sb::after{ left:auto; right:18px; transform:scale(-1,-1); }
 .finale.s2 .b3, .finale.s3 .b1, .finale.s4 .b2{ opacity:1; transform:none; }
 @keyframes rattle{
   0%{ translate:0 0; rotate:0deg; } 10%{ translate:-6px 4px; rotate:-5deg; } 20%{ translate:6px -4px; rotate:6deg; }
@@ -442,14 +437,14 @@ main{ position:relative; z-index:1; height:100%; display:flex; flex-direction:co
   const OCOL = ['#ef7d57','#ff8fb1'];
   // 🐙 이모지를 16×16 도트로 작게 그린 뒤 크게 키워 쓰기 (픽셀화)
   const EMO = (()=>{
-    const N = 24, c = document.createElement('canvas'); c.width = c.height = N; const g = c.getContext('2d');
+    const N = 128, c = document.createElement('canvas'); c.width = c.height = N; const g = c.getContext('2d');
     g.textAlign = 'center'; g.textBaseline = 'middle';
-    g.font = (N-1) + 'px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif';
+    g.font = Math.round(N*.86) + 'px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif';
     g.fillText('🐙', N/2, N/2 + 1);
     try{
       const d = g.getImageData(0,0,N,N); let solid = 0;
-      for(let k=3;k<d.data.length;k+=4){ if(d.data[k] > 110){ d.data[k] = 255; solid++; } else d.data[k] = 0; }
-      g.putImageData(d,0,0); return solid > 40 ? c : null;
+      for(let k=3;k<d.data.length;k+=4){ if(d.data[k] > 0) solid++; }
+      return solid > 200 ? c : null;
     }catch(e){ return null; }
   })();
   const bc = $('board'), bx = bc.getContext('2d'); let BW = 0;
@@ -467,11 +462,11 @@ main{ position:relative; z-index:1; height:100%; display:flex; flex-direction:co
   sizeBoard(); addEventListener('resize', sizeBoard);
   function octo(cx, cy, size, col, i, t){
     if(EMO){
-      const target = size*.84, p = Math.max(1, Math.floor(target/24)), sw = target >= 24 ? 24*p : Math.max(2, Math.round(target));
-      const up = !reduce && (Math.floor(t*3 + i*.7) % 2 === 0) ? p : 0;
-      const sq = !reduce && sw >= 32 && (Math.floor(t*4 + i) % 2) ? p : 0;   // 다리 꼼지락 (살짝 눌렸다 펼기)
-      bx.imageSmoothingEnabled = false;
-      bx.drawImage(EMO, Math.round(cx - sw/2), Math.round(cy - sw/2) - up + sq, sw, sw - sq);
+      const sw = Math.max(3, size*.86);
+      const up = reduce ? 0 : Math.abs(Math.sin(t*3 + i*.7)) * sw*.05;
+      const sq = reduce ? 0 : (Math.sin(t*6 + i)*.5 + .5) * sw*.05;   // 다리 꼼지락 (살짝 눌렸다 펼기)
+      bx.imageSmoothingEnabled = true; bx.imageSmoothingQuality = 'high';
+      bx.drawImage(EMO, cx - sw/2 - sq/2, cy - sw/2 - up + sq, sw + sq, sw - sq);
       return;
     }
     const p = Math.floor(size*.8/12);
