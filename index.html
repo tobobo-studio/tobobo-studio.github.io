@@ -443,7 +443,7 @@ main{ position:relative; z-index:1; height:100%; display:flex; flex-direction:co
   function fireworksShow(ms){ clearInterval(fwTimer); firework(); const end=Date.now()+ms; fwTimer=setInterval(()=>{ if(Date.now()>end) return clearInterval(fwTimer); firework(); if(Math.random()<.5) firework(); }, reduce?700:300); }
   function cakeRain(ms){
     clearInterval(cakeTimer); const end=Date.now()+ms;
-    const drop=k=>{ for(let i=0;i<k;i++) add({shape:'sprite',rows:SPR.cake,px:Math.round(rnd(3,6)),c:'#ff8fb1',x:rnd(-10,W+10),y:rnd(-120,-30),vx:rnd(-.5,.5),vy:rnd(1,4),g:rnd(.12,.22),drag:.995,life:400,fade:10}); };
+    const drop=k=>{ for(let i=0;i<k;i++) add({shape:'sprite',rows:SPR.cake,px:Math.round(rnd(2,4)),c:'#ff8fb1',x:rnd(-10,W+10),y:rnd(-120,-30),vx:rnd(-.5,.5),vy:rnd(1,4),g:rnd(.12,.22),drag:.995,life:400,fade:10}); };
     drop(reduce?6:20);
     cakeTimer=setInterval(()=>{ if(Date.now()>end) return clearInterval(cakeTimer); drop(reduce?2:5); }, 120);
   }
@@ -658,7 +658,7 @@ main{ position:relative; z-index:1; height:100%; display:flex; flex-direction:co
   function finaleShow(){
     busy = true;
     fireworksShow(2200);
-    setTimeout(()=>{ cakeRain(6500); }, 500);
+    setTimeout(()=>{ cakeRain(3200); }, 500);
     const step=(cls,ms,sfx)=>setTimeout(()=>{ finale.classList.add(cls); if(sfx) sfx(); }, ms);
     setTimeout(()=>finale.classList.add('show'), 1300);
     step('s1', 1500, SFX.dudung);
